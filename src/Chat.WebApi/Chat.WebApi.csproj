@@ -17,6 +17,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Chat.Data\Chat.Data.csproj" />
+    <ProjectReference Include="..\Chat.Logic\Chat.Logic.csproj" />
+	<ProjectReference Include="..\Chat.WebApi.Shared\Chat.WebApi.Shared.csproj" />
   </ItemGroup>
 
 </Project>

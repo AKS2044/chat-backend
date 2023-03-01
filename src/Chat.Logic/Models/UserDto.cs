@@ -1,9 +1,10 @@
 ﻿using Microsoft.AspNetCore.Identity;
 
-namespace Chat.Data.Models
+namespace Chat.Logic.Models
 {
-    public class User : IdentityUser
+    public class UserDto : IdentityUser
     {
+
         /// <summary>
         /// Path to file.
         /// </summary>
@@ -18,10 +19,5 @@ namespace Chat.Data.Models
         /// Date registration.
         /// </summary>
         public string? DateReg { get; set; }
-
-        /// <summary>
-        /// Navigation property for UserChats.
-        /// </summary>
-        public ICollection<UserChats>? UserChats { get; set; }
     }
 }
