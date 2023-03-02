@@ -8,7 +8,6 @@ using Chat.WebApi.Settings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using Microsoft.OpenApi.Models;
 
 namespace Chat.WebApi
@@ -29,11 +28,22 @@ namespace Chat.WebApi
                     .AddCookie(options => options.LoginPath = "/account/login");
 
             builder.Services.AddScoped(typeof(IRepositoryManager<>), typeof(RepositoryManager<>));
+            builder.Services.AddScoped<IChatManager, ChatManager>();
             builder.Services.AddScoped<IJwtService, JwtService>();
+            builder.Services.AddSignalR();
             builder.Services.AddAuthorization();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddCors();
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("Cors Policy", policy =>
+                {
+                    policy.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .WithOrigins("http://localhost:3000")
+                        .AllowCredentials();
+                });
+            });
             builder.Services.AddIdentity<User, IdentityRole>(opts =>
             {
                 opts.Password.RequiredLength = 6;
@@ -87,7 +97,7 @@ namespace Chat.WebApi
                 app.UseSwagger();
                 app.UseSwaggerUI();
             }
-
+            app.UseCors("Cors Policy");
             // global cors policy
             app.UseCors(x => x
                 .AllowAnyOrigin()
@@ -104,6 +114,7 @@ namespace Chat.WebApi
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
+                endpoints.MapHub<ChatHub>("/chat");
             });
 
             app.Run();

@@ -72,8 +72,8 @@ namespace Chat.WebApi.Controllers
 
             if (checkName is not null) errorMessage.Add(new { message = "Данный логин занят, придумай другой." });
             if (checkEmail is not null) errorMessage.Add(new { message = "Данный E-mail занят, придумай другой." });
-            if (request.Password.Length < 6) errorMessage.Add(new { message = "Пароль слишком короткий. Он должен состоять минимум из 6 символов." });
-            if (request.Password != request.PasswordConfirm) errorMessage.Add(new { message = "Пароли не совпадают!." });
+            if (request?.Password?.Length < 6) errorMessage.Add(new { message = "Пароль слишком короткий. Он должен состоять минимум из 6 символов." });
+            if (request?.Password != request?.PasswordConfirm) errorMessage.Add(new { message = "Пароли не совпадают!." });
             if (errorMessage.Count > 0) return BadRequest(errorMessage);
 
             try
@@ -81,17 +81,17 @@ namespace Chat.WebApi.Controllers
                 DateTime dateReg = DateTime.Now;
                 var user = new User
                 {
-                    Email = request.Email,
-                    DateReg = dateReg.ToLongDateString(),
-                    UserName = request.UserName,
-                    PathPhoto = request.PathPhoto,
-                    PhotoName = request.PhotoName
+                    Email = request?.Email,
+                    DateReg = dateReg.ToString("dd MMM yyy"),
+                    UserName = request?.UserName,
+                    PathPhoto = "/UserPhoto/Rick.png",
+                    PhotoName = "Rick.png"
                 };
 
-                if (request.Password == request.PasswordConfirm)
+                if (request?.Password == request?.PasswordConfirm)
                 {
-                    await _userManager.CreateAsync(user, request.Password);
-                    await _userManager.AddToRoleAsync(user, "ADMIN");
+                    await _userManager.CreateAsync(user, request?.Password);
+                    await _userManager.AddToRoleAsync(user, "USER");
                 }
                 var token = _jwtService.GenerateJwtToken(user.Id, _appSettings.Secret);
                 var userRoles = await _userManager.GetRolesAsync(user);
