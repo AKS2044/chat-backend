@@ -12,5 +12,11 @@ namespace Chat.Logic.Interfaces
         /// </summary>
         /// <param name="chatikDto">State data transfer object.</param>
         Task CreateAsync(ChatikDto chatikDto);
+
+        /// <summary>
+        /// Send message to chat.
+        /// </summary>
+        /// <param name="chatikDto">State data transfer object.</param>
+        Task SendAsync(MessagesDto messagesDto);
     }
 }

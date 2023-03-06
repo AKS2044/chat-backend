@@ -123,7 +123,10 @@ namespace Chat.WebApi.Controllers
                     var user = await _userManager.FindByIdAsync(id);
 
                     string path2 = _appEnvironment.WebRootPath;
+                    bool directory = Directory.Exists($"{path2}/UserPhoto/{user.UserName}");
+                    if (!directory)
                     Directory.CreateDirectory($"{path2}/UserPhoto/{user.UserName}");
+
                     string path = $"/UserPhoto/{user.UserName}/" + file.FileName;
 
                     if (user.PathPhoto != path)

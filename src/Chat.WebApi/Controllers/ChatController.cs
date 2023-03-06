@@ -6,6 +6,7 @@ using Chat.WebApi.Attributes;
 using Chat.WebApi.Shared.Models.Request;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
 
 namespace Chat.WebApi.Controllers
 {
@@ -14,26 +15,59 @@ namespace Chat.WebApi.Controllers
     public class ChatController : ControllerBase
     {
         private readonly IChatManager _chatManager;
-        public ChatController(IChatManager chatManager)
+        private readonly UserManager<User> _userManager;
+        public ChatController(IChatManager chatManager, UserManager<User> userManager)
         {
             _chatManager = chatManager ?? throw new ArgumentNullException(nameof(chatManager));
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
         }
 
         [OwnAuthorize]
-        [HttpPost("add")]
+        [HttpPost("addChat")]
         public async Task<IActionResult> CreateAsync(ChatCreateRequest request)
         {
-            DateTime dateReg = DateTime.Now;
-            ChatikDto chatikDto = new()
+            string? token = Request.Headers["Authorization"];
+            if (token is not null)
             {
-                NameChat = request.NameChat,
-                ChatCreator = request.ChatCreator,
-                DateCreat = dateReg.ToString("dd MMM yyy"),
-            };
+                try
+                {
+                    var handler = new JwtSecurityTokenHandler();
+                    token = token.Replace("Bearer ", "");
+                    var jsonToken = handler.ReadToken(token);
+                    var tokenS = handler.ReadToken(token) as JwtSecurityToken;
+                    var id = tokenS?.Claims.First(claim => claim.Type == "id").Value;
+                    var user = await _userManager.FindByIdAsync(id);
 
+                    ChatikDto chatikDto = new()
+                    {
+                        NameChat = request.NameChat,
+                        ChatCreator = user.Id,
+                    };
+
+                    if (ModelState.IsValid)
+                    {
+                        await _chatManager.CreateAsync(chatikDto);
+                    }
+                    return Ok();
+                }
+                catch (Exception ex)
+                {
+                    return BadRequest(new { message = ex.Message });
+                }
+            }
+            else
+            {
+                return BadRequest(new { message = "Не авторизованы" });
+            }
+        }
+
+        [OwnAuthorize]
+        [HttpPost("message")]
+        public async Task<IActionResult> SendMessageAsync(MessagesDto messagesDto)
+        {
             if (ModelState.IsValid)
             {
-                await _chatManager.CreateAsync(chatikDto);
+                await _chatManager.SendAsync(messagesDto);
             }
 
             return Ok();
