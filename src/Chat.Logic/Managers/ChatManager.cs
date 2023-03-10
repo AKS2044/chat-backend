@@ -1,6 +1,8 @@
 ﻿using Chat.Data.Models;
 using Chat.Logic.Interfaces;
 using Chat.Logic.Models;
+using Microsoft.EntityFrameworkCore;
+using System;
 
 namespace Chat.Logic.Managers
 {
@@ -9,13 +11,16 @@ namespace Chat.Logic.Managers
     {
         private readonly IRepositoryManager<Chatik> _chatRepository;
         private readonly IRepositoryManager<Messages> _messageRepository;
+        private readonly IRepositoryManager<UserChats> _userChatsRepository;
 
         public ChatManager(
             IRepositoryManager<Chatik> chatRepository, 
-            IRepositoryManager<Messages> messageRepository)
+            IRepositoryManager<Messages> messageRepository,
+            IRepositoryManager<UserChats> userChatsRepository)
         {
             _chatRepository = chatRepository ?? throw new ArgumentNullException(nameof(chatRepository));
             _messageRepository = messageRepository ?? throw new ArgumentNullException(nameof(messageRepository));
+            _userChatsRepository = userChatsRepository ?? throw new ArgumentNullException(nameof(userChatsRepository));
         }
         public async Task CreateAsync(ChatikDto chatikDto)
         {
@@ -29,6 +34,14 @@ namespace Chat.Logic.Managers
 
             await _chatRepository.CreateAsync(chat);
             await _chatRepository.SaveChangesAsync();
+
+            var userChats = new UserChats()
+            {
+                ChatId = chat.Id,
+                UserId = chat.ChatCreator
+            };
+            await _userChatsRepository.CreateAsync(userChats);
+            await _userChatsRepository.SaveChangesAsync();
         }
 
         public async Task SendAsync(MessagesDto messagesDto)
@@ -44,8 +57,41 @@ namespace Chat.Logic.Managers
 
             await _messageRepository.CreateAsync(messages);
             await _messageRepository.SaveChangesAsync();
+        }
 
+        public async Task<IEnumerable<ChatikDto>> AllChatsAsync()
+        {
+            var chatsDto = await _chatRepository
+                .GetAll().Select(c => new ChatikDto
+                {
+                    Id = c.Id,
+                    NameChat = c.NameChat,
+                    DateCreat = c.DateCreat,
+                    ChatCreator = c.ChatCreator,
+                }).ToListAsync();
 
+            return chatsDto;
+        }
+
+        public async Task<IEnumerable<ChatikDto>> AllChatsUserAsync(string userId)
+        {
+            var userChats = await _userChatsRepository
+                .GetAll()
+                .Where(c => c.UserId == userId)
+                .Select(r => r.ChatId)
+                .ToListAsync();
+            var chatsDto = await _chatRepository
+                .GetAll()
+                .Where(c => userChats.Contains(c.Id))
+                .Select(c => new ChatikDto
+                    {
+                        Id = c.Id,
+                        NameChat = c.NameChat,
+                        DateCreat = c.DateCreat,
+                        ChatCreator = c.ChatCreator,
+                    })
+                .ToListAsync();
+            return chatsDto;
         }
     }
 }

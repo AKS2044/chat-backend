@@ -13,7 +13,6 @@ namespace Chat.WebApi.Shared.Models.Request
         /// <summary>
         /// Chat creator.
         /// </summary>
-        [Required]
         public string? ChatCreator { get; set; }
     }
 }
