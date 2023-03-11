@@ -73,6 +73,21 @@ namespace Chat.WebApi.Controllers
         }
 
         [OwnAuthorize]
+        [HttpGet("mesList")]
+        public async Task<IActionResult> MessageListAsync(int chatId)
+        {
+            try
+            {
+                var chats = await _chatManager.AllMessageChatAsync(chatId);
+                return Ok(chats);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [OwnAuthorize]
         [HttpGet("chatsUser")]
         public async Task<IActionResult> ChatListUserAsync()
         {
@@ -121,7 +136,18 @@ namespace Chat.WebApi.Controllers
             if (ModelState.IsValid)
             {
                 await _chatManager.SendAsync(message);
-                return BadRequest( new {message = "Error" });
+            }
+
+            return Ok();
+        }
+
+        [OwnAuthorize]
+        [HttpDelete("messageDelete")]
+        public async Task<IActionResult> MessageDeleteAsync(int messageId)
+        {
+            if (messageId > 0)
+            {
+                await _chatManager.DeleteMessageAsync(messageId);
             }
 
             return Ok();

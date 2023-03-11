@@ -2,7 +2,6 @@
 using Chat.Logic.Interfaces;
 using Chat.Logic.Models;
 using Microsoft.EntityFrameworkCore;
-using System;
 
 namespace Chat.Logic.Managers
 {
@@ -57,6 +56,29 @@ namespace Chat.Logic.Managers
 
             await _messageRepository.CreateAsync(messages);
             await _messageRepository.SaveChangesAsync();
+        }
+
+        public async Task DeleteMessageAsync(int messageId)
+        {
+            var message = await _messageRepository.GetAll().SingleOrDefaultAsync( m => m.Id == messageId);
+            _messageRepository.Delete(message);
+            await _messageRepository.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<MessagesDto>> AllMessageChatAsync(int chatId)
+        {
+            var MessagesDto = await _messageRepository
+                .GetAll().Where(m => m.ChatId == chatId).Select(m => new MessagesDto
+                {
+                    Id = m.Id,
+                    ChatId = m.ChatId,
+                    UserName = m.UserName,
+                    Message = m.Message,
+                    PathPhoto = m.PathPhoto,
+                    DateWrite=m.DateWrite,
+                }).ToListAsync();
+
+            return MessagesDto;
         }
 
         public async Task<IEnumerable<ChatikDto>> AllChatsAsync()

@@ -29,5 +29,17 @@ namespace Chat.Logic.Interfaces
         /// </summary>
         /// <param name="userId">User id.</param>
         Task<IEnumerable<ChatikDto>> AllChatsUserAsync(string userId);
+
+        /// <summary>
+        /// Get all messages the chat.
+        /// </summary>
+        /// <param name="chatId">Chat id.</param>
+        Task<IEnumerable<MessagesDto>> AllMessageChatAsync(int chatId);
+
+        /// <summary>
+        /// Delete message.
+        /// </summary>
+        /// <param name="messageId">Message id.</param>
+        Task DeleteMessageAsync(int messageId);
     }
 }
