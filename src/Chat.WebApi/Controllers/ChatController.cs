@@ -88,6 +88,21 @@ namespace Chat.WebApi.Controllers
         }
 
         [OwnAuthorize]
+        [HttpGet("getChat")]
+        public async Task<IActionResult> GetChatByIdAsync(int chatId)
+        {
+            try
+            {
+                var chat = await _chatManager.GetChatByIdAsync(chatId);
+                return Ok(chat);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
+        [OwnAuthorize]
         [HttpGet("chatsUser")]
         public async Task<IActionResult> ChatListUserAsync()
         {

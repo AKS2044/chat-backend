@@ -115,5 +115,19 @@ namespace Chat.Logic.Managers
                 .ToListAsync();
             return chatsDto;
         }
+
+        public async Task<ChatikDto> GetChatByIdAsync(int chatId)
+        {
+            var chatik = await _chatRepository.GetAll().SingleOrDefaultAsync( c => c.Id == chatId);
+            var chatikDto = new ChatikDto()
+            {
+                Id = chatik.Id,
+                DateCreat = chatik.DateCreat,
+                NameChat = chatik.NameChat,
+                ChatCreator = chatik.ChatCreator,
+            };
+
+            return chatikDto;
+        }
     }
 }

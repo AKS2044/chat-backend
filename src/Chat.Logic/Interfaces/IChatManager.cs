@@ -41,5 +41,11 @@ namespace Chat.Logic.Interfaces
         /// </summary>
         /// <param name="messageId">Message id.</param>
         Task DeleteMessageAsync(int messageId);
+
+        /// <summary>
+        /// Get chat by id.
+        /// </summary>
+        /// <param name="chatId">Chat id.</param>
+        Task<ChatikDto> GetChatByIdAsync(int chatId);
     }
 }
