@@ -10,7 +10,7 @@
         /// <summary>
         /// Name chat.
         /// </summary>
-        public string NameChat { get; set; }
+        public string? NameChat { get; set; }
 
         /// <summary>
         /// Chat creator.

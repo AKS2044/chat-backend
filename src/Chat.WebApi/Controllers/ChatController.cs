@@ -1,5 +1,4 @@
-﻿using Azure.Core;
-using Chat.Data.Models;
+﻿using Chat.Data.Models;
 using Chat.Logic.Interfaces;
 using Chat.Logic.Models;
 using Chat.WebApi.Attributes;
@@ -7,6 +6,7 @@ using Chat.WebApi.Shared.Models.Request;
 using Chat.WebApi.Shared.Models.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Data;
 using System.IdentityModel.Tokens.Jwt;
 
 namespace Chat.WebApi.Controllers
@@ -166,6 +166,61 @@ namespace Chat.WebApi.Controllers
             }
 
             return Ok();
+        }
+
+        [OwnAuthorize]
+        [HttpGet("usersChat")]
+        public async Task<IActionResult> UsersInChatAsync(int chatId)
+        {
+            var usersChat = new List<UsersListInChatResponse>();
+
+            if (chatId > 0)
+            {
+                var users = await _chatManager.AllUsersInChatAsync(chatId);
+                foreach (var item in users)
+                {
+                    usersChat.Add(new UsersListInChatResponse
+                    {
+                        Id = item.Id,
+                        Email = item.Email,
+                        UserName = item.UserName,
+                        PathPhoto = item.PathPhoto,
+                        DateReg = item.DateReg,
+                    });
+                }
+                return Ok(usersChat);
+            }
+            else
+            {
+                return BadRequest(new { message = "Wrong id" });
+            }
+        }
+
+        [OwnAuthorize]
+        [HttpGet("searchChat")]
+        public async Task<IActionResult> SearchChatAsync(string chatName)
+        {
+            var response = new List<ChatListResponse>();
+
+            if (chatName != null)
+            {
+                var chats = await _chatManager.SeacrchChatByNameAsync(chatName);
+                foreach (var item in chats)
+                {
+                    response.Add(new ChatListResponse
+                    {
+                        Id = item.Id,
+                        DateCreat = item.DateCreat,
+                        ChatCreator = item.ChatCreator,
+                        NameChat = item.NameChat
+                    });
+                }
+                return Ok(response);
+            }
+            else
+            {
+                return Ok(new { message = "Not found" });
+            }
         }
     }
 }

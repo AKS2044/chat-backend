@@ -1,6 +1,7 @@
 ﻿using Chat.Data.Models;
 using Chat.Logic.Interfaces;
 using Chat.Logic.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Chat.Logic.Managers
@@ -11,12 +12,15 @@ namespace Chat.Logic.Managers
         private readonly IRepositoryManager<Chatik> _chatRepository;
         private readonly IRepositoryManager<Messages> _messageRepository;
         private readonly IRepositoryManager<UserChats> _userChatsRepository;
+        private readonly UserManager<User> _userManager;
 
         public ChatManager(
             IRepositoryManager<Chatik> chatRepository, 
             IRepositoryManager<Messages> messageRepository,
-            IRepositoryManager<UserChats> userChatsRepository)
+            IRepositoryManager<UserChats> userChatsRepository,
+            UserManager<User> userManager)
         {
+            _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _chatRepository = chatRepository ?? throw new ArgumentNullException(nameof(chatRepository));
             _messageRepository = messageRepository ?? throw new ArgumentNullException(nameof(messageRepository));
             _userChatsRepository = userChatsRepository ?? throw new ArgumentNullException(nameof(userChatsRepository));
@@ -119,6 +123,7 @@ namespace Chat.Logic.Managers
         public async Task<ChatikDto> GetChatByIdAsync(int chatId)
         {
             var chatik = await _chatRepository.GetAll().SingleOrDefaultAsync( c => c.Id == chatId);
+
             var chatikDto = new ChatikDto()
             {
                 Id = chatik.Id,
@@ -128,6 +133,45 @@ namespace Chat.Logic.Managers
             };
 
             return chatikDto;
+        }
+
+        public async Task<IEnumerable<UserDto>> AllUsersInChatAsync(int chatId)
+        {
+            var usersChat = await _userChatsRepository
+                .GetAll()
+                .Where(c => c.ChatId == chatId)
+                .Select(r => r.UserId)
+                .ToListAsync();
+
+            var usersDto = await _userManager.Users
+                .Where(u => usersChat.Contains(u.Id))
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    Email = u.Email,
+                    DateReg = u.DateReg,
+                    PathPhoto = u.PathPhoto,
+
+                }).ToListAsync();
+
+            return usersDto;
+        }
+
+        public async Task<List<ChatikDto>> SeacrchChatByNameAsync(string chatName)
+        {
+            var result = await _chatRepository.GetAll()
+                .Where(c => c.NameChat.ToLower()
+                .Contains(chatName.ToLower()))
+                .Select(u => new ChatikDto
+                {
+                    Id = u.Id,
+                    NameChat = u.NameChat,
+                    ChatCreator = u.ChatCreator,
+                    DateCreat = u.DateCreat
+
+                }).ToListAsync();
+            return result;
         }
     }
 }

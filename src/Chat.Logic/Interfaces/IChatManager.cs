@@ -31,6 +31,12 @@ namespace Chat.Logic.Interfaces
         Task<IEnumerable<ChatikDto>> AllChatsUserAsync(string userId);
 
         /// <summary>
+        /// All users in the chat.
+        /// </summary>
+        /// <param name="chatId">Chat id.</param>
+        Task<IEnumerable<UserDto>> AllUsersInChatAsync(int chatId);
+
+        /// <summary>
         /// Get all messages the chat.
         /// </summary>
         /// <param name="chatId">Chat id.</param>
@@ -47,5 +53,11 @@ namespace Chat.Logic.Interfaces
         /// </summary>
         /// <param name="chatId">Chat id.</param>
         Task<ChatikDto> GetChatByIdAsync(int chatId);
+
+        /// <summary>
+        /// Get chat by name.
+        /// </summary>
+        /// <param name="chatName">Chat name.</param>
+        Task<List<ChatikDto>> SeacrchChatByNameAsync(string chatName);
     }
 }

@@ -119,7 +119,7 @@ namespace Chat.WebApi.Controllers
                     token = token.Replace("Bearer ", "");
                     var jsonToken = handler.ReadToken(token);
                     var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-                    var id = tokenS.Claims.First(claim => claim.Type == "id").Value;
+                    var id = tokenS?.Claims.First(claim => claim.Type == "id").Value;
                     var user = await _userManager.FindByIdAsync(id);
 
                     string path2 = _appEnvironment.WebRootPath;
