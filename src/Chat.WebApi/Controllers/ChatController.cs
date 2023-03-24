@@ -222,5 +222,45 @@ namespace Chat.WebApi.Controllers
                 return Ok(new { message = "Not found" });
             }
         }
+
+        [OwnAuthorize]
+        [HttpPost("enter")]
+        public async Task<IActionResult> EnterAsync(EnterLeaveTheChatRequest request)
+        {
+            var result = new UserChatsDto()
+            {
+                UserId = request.UserId,
+                ChatId = request.ChatId
+            };
+
+            if (ModelState.IsValid)
+            {
+                await _chatManager.EnterTheChatAsync(result);
+
+                return Ok();
+            }
+
+            return BadRequest(new {message = "BadRequest" });
+        }
+
+        [OwnAuthorize]
+        [HttpDelete("leave")]
+        public async Task<IActionResult> LeaveAsync([FromQuery]EnterLeaveTheChatRequest request)
+        {
+            var result = new UserChatsDto()
+            {
+                UserId = request.UserId,
+                ChatId = request.ChatId
+            };
+
+            if (ModelState.IsValid)
+            {
+                await _chatManager.LeaveTheChatAsync(result);
+
+                return Ok();
+            }
+
+            return BadRequest(new { message = "BadRequest" });
+        }
     }
 }

@@ -59,5 +59,17 @@ namespace Chat.Logic.Interfaces
         /// </summary>
         /// <param name="chatName">Chat name.</param>
         Task<List<ChatikDto>> SeacrchChatByNameAsync(string chatName);
+
+        /// <summary>
+        /// Enter the chat.
+        /// </summary>
+        /// <param name="userChatsDto">State data transfer object.</param>
+        Task EnterTheChatAsync(UserChatsDto userChatsDto);
+
+        /// <summary>
+        /// Leave the chat.
+        /// </summary>
+        /// <param name="userChatsDto">State data transfer object.</param>
+        Task LeaveTheChatAsync(UserChatsDto userChatsDto);
     }
 }

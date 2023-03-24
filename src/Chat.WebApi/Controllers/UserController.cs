@@ -149,7 +149,7 @@ namespace Chat.WebApi.Controllers
             }
             else
             {
-                return NotFound(new { message = "Пользователь не найден" });
+                return NotFound(new { message = "User is not found" });
             };
         }
 
@@ -165,7 +165,7 @@ namespace Chat.WebApi.Controllers
         {
             string token = Request.Headers["Authorization"];
 
-            if (token is not null)
+            if (token != null)
             {
                 try
                 {
@@ -194,32 +194,29 @@ namespace Chat.WebApi.Controllers
 
         [OwnAuthorize]
         [HttpGet("profile")]
-        public async Task<IActionResult> ProfileAsync()
+        public async Task<IActionResult> ProfileAsync(string userName)
         {
-            string token = Request.Headers["Authorization"];
-            if (token is not null)
+            if (userName != null)
             {
                 try
                 {
-                    var handler = new JwtSecurityTokenHandler();
-                    token = token.Replace("Bearer ", "");
-                    var jsonToken = handler.ReadToken(token);
-                    var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-                    var id = tokenS.Claims.First(claim => claim.Type == "id").Value;
-
-                    var user = await _userManager.FindByIdAsync(id);
-                    var userRoles = await _userManager.GetRolesAsync(user);
-
-                    var result = new ProfileUserResponse
+                    var user = await _userManager.FindByNameAsync(userName);
+                    if (user != null)
                     {
-                        DateReg = user.DateReg,
-                        Email = user.Email,
-                        Roles = userRoles,
-                        UserName = user.UserName,
-                        PathPhoto = user.PathPhoto,
-                        PhotoName = user.PhotoName
-                    };
-                    return Ok(result);
+                        var userRoles = await _userManager.GetRolesAsync(user);
+
+                        var result = new ProfileUserResponse
+                        {
+                            DateReg = user.DateReg,
+                            Email = user.Email,
+                            Roles = userRoles,
+                            UserName = user.UserName,
+                            PathPhoto = user.PathPhoto,
+                            PhotoName = user.PhotoName
+                        };
+                        return Ok(result);
+                    }
+                    return NotFound(new { message = "User is not found" });
                 }
                 catch (Exception ex)
                 {
@@ -228,7 +225,7 @@ namespace Chat.WebApi.Controllers
             }
             else
             {
-                return NotFound(new { message = "Не авторизованы" });
+                return NotFound(new { message = "User is not found" });
             }
         }
 

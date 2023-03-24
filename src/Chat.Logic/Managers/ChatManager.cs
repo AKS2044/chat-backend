@@ -65,8 +65,11 @@ namespace Chat.Logic.Managers
         public async Task DeleteMessageAsync(int messageId)
         {
             var message = await _messageRepository.GetAll().SingleOrDefaultAsync( m => m.Id == messageId);
-            _messageRepository.Delete(message);
-            await _messageRepository.SaveChangesAsync();
+            if (message != null)
+            {
+                _messageRepository.Delete(message);
+                await _messageRepository.SaveChangesAsync();
+            }
         }
 
         public async Task<IEnumerable<MessagesDto>> AllMessageChatAsync(int chatId)
@@ -124,15 +127,19 @@ namespace Chat.Logic.Managers
         {
             var chatik = await _chatRepository.GetAll().SingleOrDefaultAsync( c => c.Id == chatId);
 
-            var chatikDto = new ChatikDto()
+            if (chatik != null)
             {
-                Id = chatik.Id,
-                DateCreat = chatik.DateCreat,
-                NameChat = chatik.NameChat,
-                ChatCreator = chatik.ChatCreator,
-            };
+                var chatikDto = new ChatikDto()
+                {
+                    Id = chatik.Id,
+                    DateCreat = chatik.DateCreat,
+                    NameChat = chatik.NameChat,
+                    ChatCreator = chatik.ChatCreator,
+                };
 
-            return chatikDto;
+                return chatikDto;
+            }
+            return null;
         }
 
         public async Task<IEnumerable<UserDto>> AllUsersInChatAsync(int chatId)
@@ -160,18 +167,51 @@ namespace Chat.Logic.Managers
 
         public async Task<List<ChatikDto>> SeacrchChatByNameAsync(string chatName)
         {
-            var result = await _chatRepository.GetAll()
-                .Where(c => c.NameChat.ToLower()
-                .Contains(chatName.ToLower()))
-                .Select(u => new ChatikDto
-                {
-                    Id = u.Id,
-                    NameChat = u.NameChat,
-                    ChatCreator = u.ChatCreator,
-                    DateCreat = u.DateCreat
+            if (chatName != null)
+            {
+                var result = await _chatRepository.GetAll()
+                    .Where(c => c.NameChat.ToLower()
+                    .Contains(chatName.ToLower()))
+                    .Select(u => new ChatikDto
+                    {
+                        Id = u.Id,
+                        NameChat = u.NameChat,
+                        ChatCreator = u.ChatCreator,
+                        DateCreat = u.DateCreat
 
-                }).ToListAsync();
-            return result;
+                    }).ToListAsync();
+                return result;
+            }
+            return null;
+        }
+
+        public async Task EnterTheChatAsync(UserChatsDto userChatsDto)
+        {
+            if (userChatsDto != null)
+            {
+                var enter = new UserChats()
+                {
+                    ChatId = userChatsDto.ChatId,
+                    UserId = userChatsDto.UserId
+                };
+                await _userChatsRepository.CreateAsync(enter);
+                await _userChatsRepository.SaveChangesAsync();
+            }
+        }
+
+        public async Task LeaveTheChatAsync(UserChatsDto userChatsDto)
+        {
+            if (userChatsDto != null)
+            {
+                var delete = await _userChatsRepository
+                    .GetAll()
+                    .FirstOrDefaultAsync(d => d.UserId == userChatsDto.UserId && d.ChatId == userChatsDto.ChatId);
+                if (delete != null)
+                {
+                    _userChatsRepository.Delete(delete);
+                    await _userChatsRepository.SaveChangesAsync();
+                }
+            }
         }
     }
 }
