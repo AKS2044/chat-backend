@@ -104,26 +104,23 @@ namespace Chat.WebApi.Controllers
 
         [OwnAuthorize]
         [HttpGet("chatsUser")]
-        public async Task<IActionResult> ChatListUserAsync()
+        public async Task<IActionResult> ChatListUserAsync(string userName)
         {
-            string? token = Request.Headers["Authorization"];
-            if (token is not null)
+            if (userName != null)
             {
                 try
                 {
-                    var handler = new JwtSecurityTokenHandler();
-                    token = token.Replace("Bearer ", "");
-                    var jsonToken = handler.ReadToken(token);
-                    var tokenS = handler.ReadToken(token) as JwtSecurityToken;
-                    var id = tokenS?.Claims.First(claim => claim.Type == "id").Value;
-                    var user = await _userManager.FindByIdAsync(id);
-                    var chats = await _chatManager.AllChatsUserAsync(user.Id);
+                    var user = await _userManager.FindByNameAsync(userName);
 
-                    if (chats is null)
+                    if (user != null)
                     {
-                        return Ok(new { message =  "Chats not found" });
+                        var chats = await _chatManager.AllChatsUserAsync(user.Id);
+                        return Ok(chats);
                     }
-                    return Ok(chats);
+                    else
+                    {
+                        return NotFound(new { message = "User not found" });
+                    }
                 }
                 catch (Exception ex)
                 {
