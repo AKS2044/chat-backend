@@ -48,19 +48,38 @@ namespace Chat.WebApi.Controllers
         [HttpPost("login")]
         public async Task<IActionResult> LoginAsync(UserLoginRequest model)
         {
-            var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+            var errorMessage = new List<object>();
+            var checkName = await _userManager.FindByNameAsync(model.UserName);
 
-            if (!result.Succeeded)
-            {
-                return BadRequest(new { message = "Неправильный логин и (или) пароль" });
+            if (checkName == null) errorMessage.Add(new { message = "Invalid login!" });
+
+            if (checkName != null)
+            { 
+                try
+                {
+                    var result = await _signInManager.PasswordSignInAsync(model.UserName, model.Password, model.RememberMe, false);
+
+                    if (!result.Succeeded)
+                    {
+                        errorMessage.Add(new { message = "Invalid password!" });
+                        return BadRequest(errorMessage);
+                    }
+
+                    var user = await _userManager.FindByNameAsync(model.UserName);
+                    var token = _jwtService.GenerateJwtToken(user.Id, _appSettings.Secret);
+                    var userRoles = await _userManager.GetRolesAsync(user);
+                    var response = new AuthenticateResponse(user, token, userRoles);
+
+                    return Ok(response);
+                }
+                catch (Exception error)
+                {
+                    errorMessage.Add(new { message = error.Message });
+                    return BadRequest(errorMessage);
+                }
             }
 
-            var user = await _userManager.FindByNameAsync(model.UserName);
-            var token = _jwtService.GenerateJwtToken(user.Id, _appSettings.Secret);
-            var userRoles = await _userManager.GetRolesAsync(user);
-            var response = new AuthenticateResponse(user, token, userRoles);
-
-            return Ok(response);
+            return BadRequest(errorMessage);
         }
 
         [HttpPost("registration")]
@@ -70,8 +89,8 @@ namespace Chat.WebApi.Controllers
             var checkEmail = await _userManager.FindByEmailAsync(request.Email);
             var errorMessage = new List<object>();
 
-            if (checkName is not null) errorMessage.Add(new { message = "Данный логин занят, придумай другой." });
-            if (checkEmail is not null) errorMessage.Add(new { message = "Данный E-mail занят, придумай другой." });
+            if (checkName == null) errorMessage.Add(new { message = "Данный логин занят, придумай другой." });
+            if (checkEmail == null) errorMessage.Add(new { message = "Данный E-mail занят, придумай другой." });
             if (request?.Password?.Length < 6) errorMessage.Add(new { message = "Пароль слишком короткий. Он должен состоять минимум из 6 символов." });
             if (request?.Password != request?.PasswordConfirm) errorMessage.Add(new { message = "Пароли не совпадают!." });
             if (errorMessage.Count > 0) return BadRequest(errorMessage);
@@ -174,7 +193,7 @@ namespace Chat.WebApi.Controllers
                     var jsonToken = handler.ReadToken(token);
                     var tokenS = handler.ReadToken(token) as JwtSecurityToken;
                     var id = tokenS.Claims.First(claim => claim.Type == "id").Value;
-
+                    
                     var user = await _userManager.FindByIdAsync(id);
                     var userRoles = await _userManager.GetRolesAsync(user);
                     var response = new AuthenticateResponse(user, token, userRoles);
@@ -192,7 +211,7 @@ namespace Chat.WebApi.Controllers
             }
         }
 
-        [OwnAuthorize]
+        //[OwnAuthorize]
         [HttpGet("profile")]
         public async Task<IActionResult> ProfileAsync(string userName)
         {
