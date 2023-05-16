@@ -21,4 +21,8 @@
 	<ProjectReference Include="..\Chat.WebApi.Shared\Chat.WebApi.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\DefaultPhoto\" />
+  </ItemGroup>
+
 </Project>

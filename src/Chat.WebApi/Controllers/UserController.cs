@@ -89,8 +89,8 @@ namespace Chat.WebApi.Controllers
             var checkEmail = await _userManager.FindByEmailAsync(request.Email);
             var errorMessage = new List<object>();
 
-            if (checkName == null) errorMessage.Add(new { message = "Данный логин занят, придумай другой." });
-            if (checkEmail == null) errorMessage.Add(new { message = "Данный E-mail занят, придумай другой." });
+            if (checkName != null) errorMessage.Add(new { message = "Данный логин занят, придумай другой." });
+            if (checkEmail != null) errorMessage.Add(new { message = "Данный E-mail занят, придумай другой." });
             if (request?.Password?.Length < 6) errorMessage.Add(new { message = "Пароль слишком короткий. Он должен состоять минимум из 6 символов." });
             if (request?.Password != request?.PasswordConfirm) errorMessage.Add(new { message = "Пароли не совпадают!." });
             if (errorMessage.Count > 0) return BadRequest(errorMessage);
@@ -98,12 +98,13 @@ namespace Chat.WebApi.Controllers
             try
             {
                 DateTime dateReg = DateTime.Now;
+                Random randomPhoto = new Random();
                 var user = new User
                 {
                     Email = request?.Email,
                     DateReg = dateReg.ToString("dd MMM yyy"),
                     UserName = request?.UserName,
-                    PathPhoto = "/UserPhoto/Rick.png",
+                    PathPhoto = $"/DefaultPhoto/RickMorti{randomPhoto.Next(1, 8)}.png",
                     PhotoName = "Rick.png"
                 };
 

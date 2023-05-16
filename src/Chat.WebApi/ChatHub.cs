@@ -35,7 +35,7 @@ namespace Chat.WebApi
             return user;
         }
 
-        public async Task UsersConnectedAsync(string chatName)
+        public async Task OnConnectedAsync(string chatName)
         {
             var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
 
@@ -52,33 +52,35 @@ namespace Chat.WebApi
                         ChatName = chatName,
                     });
 
+                    await Groups.AddToGroupAsync(Context.ConnectionId, chatName);
+                    await Clients.Group(chatName).ConnectedAsync($"{user.UserName} has entered the chat");
                     await Clients.Group(chatName).SendCheckUsers(users);
+                    await base.OnConnectedAsync();
                 }
             }
         }
-        public async Task OnConnectedAsync(string chatName)
+
+        public override async Task OnDisconnectedAsync(Exception? exception)
         {
             var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
 
             if (token != null && token != "Unauthorized")
             {
                 var user = await CheckUser(token);
-                await Groups.AddToGroupAsync(Context.ConnectionId, chatName);
-                await Clients.Group(chatName).ConnectedAsync($"{user.UserName} has entered the chat");
-                await base.OnConnectedAsync();
-            }
-        }
 
-        public async Task OnDisconnectedAsync(Exception? exception, string chatName)
-        {
-            var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+                if (user != null)
+                {
+                    var userOut = users.FirstOrDefault(
+                        u => u.ConnectedId == Context.ConnectionId);
 
-            if (token != null && token != "Unauthorized")
-            {
-                var user = await CheckUser(token);
-                //await Groups.RemoveFromGroupAsync(Context.ConnectionId, chatName);
-                await Clients.Group(chatName).DisconnectedAsync($"{user.UserName} has left the chat");
-                await base.OnDisconnectedAsync(exception);
+                    if (userOut != null)
+                        users.Remove(userOut);
+
+                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, userOut.ChatName);
+                    await Clients.Group(userOut.ChatName).DisconnectedAsync($"{user.UserName} has left the chat");
+                    await Clients.Group(userOut.ChatName).SendCheckUsers(users);
+                    await base.OnDisconnectedAsync(exception);
+                }
             }
         }
     }

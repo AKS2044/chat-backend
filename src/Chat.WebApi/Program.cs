@@ -52,7 +52,6 @@ namespace Chat.WebApi
                 opts.Password.RequireUppercase = false;
                 opts.Password.RequireDigit = false;
                 opts.User.RequireUniqueEmail = true;
-                opts.User.AllowedUserNameCharacters = ".@abcdefghijklmnopqrstuvwxyz1234567890";
             }).AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddSwaggerGen(config =>
