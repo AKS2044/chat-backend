@@ -14,6 +14,12 @@ namespace Chat.Logic.Interfaces
         Task CreateAsync(ChatikDto chatikDto);
 
         /// <summary>
+        /// Delete chat.
+        /// </summary>
+        /// <param name="chatId">Chat id.</param>
+        Task DeleteChatAsync(int chatId);
+
+        /// <summary>
         /// Send message to chat.
         /// </summary>
         /// <param name="chatikDto">State data transfer object.</param>

@@ -1,9 +1,9 @@
 ﻿using Chat.Data.Models;
 using Chat.Logic.Interfaces;
 using Chat.WebApi.Attributes;
-using Chat.WebApi.Contracts.Requests;
 using Chat.WebApi.Contracts.Responses;
 using Chat.WebApi.Settings;
+using Chat.WebApi.Shared.Models.Request;
 using Chat.WebApi.Shared.Models.Responses;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -126,12 +126,32 @@ namespace Chat.WebApi.Controllers
             }
         }
 
+        [HttpPost("logout")]
+        public async Task<IActionResult> LogoutAsync(UserLogoutRequest model)
+        {
+            var user = await _userManager.FindByNameAsync(model.UserName);
+            if (true)
+            {
+                try
+                {
+                    var check1 = User?.Identity?.IsAuthenticated;
+                    await _signInManager.SignOutAsync();
+                    var check2 = User?.Identity?.IsAuthenticated;
+                    return Ok();
+                }
+                catch (Exception error)
+                {
+                    return BadRequest(error);
+                }
+            }
+        }
+
         [HttpPost("uploadPhoto")]
         public async Task<IActionResult> Upload(IFormFile file)
         {
             string token = Request.Headers["Authorization"];
 
-            if (token is not null)
+             if (token is not null)
             {
                 try
                 {
@@ -171,13 +191,6 @@ namespace Chat.WebApi.Controllers
             {
                 return NotFound(new { message = "User is not found" });
             };
-        }
-
-        [HttpPost("logout")]
-        public async Task<OkResult> LogoutAsync()
-        {
-            await _signInManager.SignOutAsync();
-            return Ok();
         }
 
         [HttpGet("auth")]

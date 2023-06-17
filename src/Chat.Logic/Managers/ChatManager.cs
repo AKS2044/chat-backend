@@ -213,5 +213,34 @@ namespace Chat.Logic.Managers
                 }
             }
         }
+
+        public async Task DeleteChatAsync(int chatId)
+        {
+            var chat = await _chatRepository.GetAll().FirstOrDefaultAsync(c => c.Id == chatId);
+
+            if(chat != null)
+            {
+                var messages = await _messageRepository.GetAll().Where(m => m.ChatId == chatId).ToListAsync();
+                if (messages != null)
+                {
+                    _messageRepository.DeleteRange(messages);
+                    await _messageRepository.SaveChangesAsync();
+                } 
+
+                var userChats = await _userChatsRepository.GetAll().Where(c => c.ChatId == chatId).ToListAsync();
+                if (userChats != null)
+                {
+                    _userChatsRepository.DeleteRange(userChats);
+                    await _userChatsRepository.SaveChangesAsync();
+                } 
+
+                var chatDelete = await _chatRepository.GetAll().FirstOrDefaultAsync(c => c.Id == chatId);
+                if (chatDelete != null)
+                {
+                    _chatRepository.Delete(chatDelete);
+                    await _chatRepository.SaveChangesAsync();
+                }
+            }
+        }
     }
 }

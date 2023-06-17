@@ -40,8 +40,7 @@ namespace Chat.WebApi
                 {
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
-                        .WithOrigins("http://localhost:3000")
-                        .AllowCredentials();
+                        .AllowAnyOrigin();
                 });
             });
             builder.Services.AddIdentity<User, IdentityRole>(opts =>

@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Identity;
 using System.IdentityModel.Tokens.Jwt;
 using Chat.Data.Models;
 using Chat.WebApi.Shared.Models;
+using Azure.Core;
 
 namespace Chat.WebApi
 {
@@ -37,8 +38,13 @@ namespace Chat.WebApi
 
         public async Task OnConnectedAsync(string chatName)
         {
-            var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
-
+            string token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+            if(token?.Length == 0 && token != "Unauthorized")
+            {
+                token = Context.GetHttpContext()?.Request.Headers["Authorization"];
+                if(token?.Length > 0) token = token.Replace("Bearer ", "");
+            }
+            
             if (token != null && token != "Unauthorized")
             {
                 var user = await CheckUser(token);
@@ -62,7 +68,12 @@ namespace Chat.WebApi
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
-            var token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+            string token = Context.GetHttpContext()?.Request.Query["access_token"].ToString();
+            if (token?.Length == 0 && token != "Unauthorized")
+            {
+                token = Context.GetHttpContext()?.Request.Headers["Authorization"];
+                if (token?.Length > 0) token = token.Replace("Bearer ", "");
+            }
 
             if (token != null && token != "Unauthorized")
             {
@@ -76,11 +87,13 @@ namespace Chat.WebApi
                     if (userOut != null)
                         users.Remove(userOut);
 
-                    await Groups.RemoveFromGroupAsync(Context.ConnectionId, userOut.ChatName);
-                    await Clients.Group(userOut.ChatName).DisconnectedAsync($"{user.UserName} has left the chat");
-                    await Clients.Group(userOut.ChatName).SendCheckUsers(users);
-                    await base.OnDisconnectedAsync(exception);
-                }
+                    if(userOut != null)
+                    {
+                        await Groups.RemoveFromGroupAsync(Context.ConnectionId, userOut.ChatName);
+                        await Clients.Group(userOut.ChatName).DisconnectedAsync($"{user.UserName} has left the chat");
+                        await Clients.Group(userOut.ChatName).SendCheckUsers(users);
+                        await base.OnDisconnectedAsync(exception);
+                    }                }
             }
         }
     }

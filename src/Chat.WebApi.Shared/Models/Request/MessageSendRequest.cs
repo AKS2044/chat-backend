@@ -10,6 +10,7 @@ namespace Chat.WebApi.Shared.Models.Request
         [Required]
         public int ChatId { get; set; }
 
+        [Required]
         /// <summary>
         /// Message.
         /// </summary>
