@@ -13,11 +13,6 @@
         public int ChatId { get; set; }
 
         /// <summary>
-        /// Chat name.
-        /// </summary>
-        public string ChatName { get; set; }
-
-        /// <summary>
         /// Message.
         /// </summary>
         public string? Message { get; set; }

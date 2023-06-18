@@ -34,15 +34,7 @@ namespace Chat.WebApi
             builder.Services.AddAuthorization();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
-            builder.Services.AddCors(options =>
-            {
-                options.AddPolicy("Cors Policy", policy =>
-                {
-                    policy.AllowAnyHeader()
-                        .AllowAnyMethod()
-                        .AllowAnyOrigin();
-                });
-            });
+            builder.Services.AddCors();
             builder.Services.AddIdentity<User, IdentityRole>(opts =>
             {
                 opts.Password.RequiredLength = 6;
@@ -98,7 +90,8 @@ namespace Chat.WebApi
             app.UseCors("Cors Policy");
             // global cors policy
             app.UseCors(x => x
-                .AllowAnyOrigin()
+                .SetIsOriginAllowed(origin => true)
+                .AllowCredentials()
                 .AllowAnyMethod()
                 .AllowAnyHeader());
 

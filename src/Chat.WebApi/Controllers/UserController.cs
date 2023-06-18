@@ -221,7 +221,7 @@ namespace Chat.WebApi.Controllers
             }
             else
             {
-                return Unauthorized(new { message = "Вы не авторизованы" });
+                return Unauthorized(new { message = "You are not authorized." });
             }
         }
 

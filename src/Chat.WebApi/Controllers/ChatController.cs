@@ -40,18 +40,28 @@ namespace Chat.WebApi.Controllers
                     var user = await _userManager.FindByIdAsync(id);
                     DateTime dateReg = DateTime.Now;
 
-                    ChatikDto chatikDto = new()
-                    {
-                        NameChat = request.NameChat,
-                        ChatCreator = user.Id,
-                        DateCreat = dateReg.ToString("dd MMM yyy")
-                    };
+                    var check = await _chatManager.AllChatsAsync();
+                    var result = check.FirstOrDefault(c => c.NameChat == request.NameChat);
 
-                    if (ModelState.IsValid)
+                    if (result == null)
                     {
-                        await _chatManager.CreateAsync(chatikDto);
+                        ChatikDto chatikDto = new()
+                        {
+                            NameChat = request.NameChat,
+                            ChatCreator = user.Id,
+                            DateCreat = dateReg.ToString("dd MMM yyy")
+                        };
+
+                        if (ModelState.IsValid)
+                        {
+                            await _chatManager.CreateAsync(chatikDto);
+                        }
+                        return Ok();
                     }
-                    return Ok();
+                    else
+                    {
+                        return BadRequest(new { message = "Chat with that name already exists." });
+                    }
                 }
                 catch (Exception ex)
                 {
@@ -60,7 +70,7 @@ namespace Chat.WebApi.Controllers
             }
             else
             {
-                return BadRequest(new { message = "Не авторизованы" });
+                return BadRequest(new { message = "You are not authorized." });
             }
         }
 
@@ -141,7 +151,7 @@ namespace Chat.WebApi.Controllers
             }
             else
             {
-                return BadRequest(new { message = "Не авторизованы" });
+                return BadRequest(new { message = "You are not authorized." });
             }
         }
 

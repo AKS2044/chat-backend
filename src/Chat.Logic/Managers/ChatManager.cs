@@ -27,24 +27,28 @@ namespace Chat.Logic.Managers
         }
         public async Task CreateAsync(ChatikDto chatikDto)
         {
-            DateTime dateReg = DateTime.Now;
-            var chat = new Chatik()
-            {
-                NameChat = chatikDto.NameChat,
-                ChatCreator = chatikDto.ChatCreator,
-                DateCreat = dateReg.ToString("dd MMM yyy"),
-            };
+            var checkChat = await _chatRepository.GetAll().FirstOrDefaultAsync(c => c.NameChat == chatikDto.NameChat);
 
-            await _chatRepository.CreateAsync(chat);
-            await _chatRepository.SaveChangesAsync();
-
-            var userChats = new UserChats()
+            if (checkChat == null)
             {
-                ChatId = chat.Id,
-                UserId = chat.ChatCreator
-            };
-            await _userChatsRepository.CreateAsync(userChats);
-            await _userChatsRepository.SaveChangesAsync();
+                var chat = new Chatik()
+                {
+                    NameChat = chatikDto.NameChat,
+                    ChatCreator = chatikDto.ChatCreator,
+                    DateCreat = chatikDto.DateCreat,
+                };
+
+                await _chatRepository.CreateAsync(chat);
+                await _chatRepository.SaveChangesAsync();
+
+                var userChats = new UserChats()
+                {
+                    ChatId = chat.Id,
+                    UserId = chat.ChatCreator
+                };
+                await _userChatsRepository.CreateAsync(userChats);
+                await _userChatsRepository.SaveChangesAsync();
+            }
         }
 
         public async Task SendAsync(MessagesDto messagesDto)
@@ -74,6 +78,7 @@ namespace Chat.Logic.Managers
 
         public async Task<IEnumerable<MessagesDto>> AllMessageChatAsync(int chatId)
         {
+            var response = new List<MessagesDto>();
             var MessagesDto = await _messageRepository
                 .GetAll().Where(m => m.ChatId == chatId).Select(m => new MessagesDto
                 {
@@ -85,7 +90,22 @@ namespace Chat.Logic.Managers
                     DateWrite=m.DateWrite,
                 }).ToListAsync();
 
-            return MessagesDto;
+            foreach (var item in MessagesDto)
+            {
+                var user = await _userManager.FindByNameAsync(item.UserName);
+                response.Add(new MessagesDto
+                {
+                    Id = item.Id,
+                    ChatId = item.ChatId,
+                    UserName = item.UserName,
+                    Message = item.Message,
+                    PathPhoto = user.PathPhoto,
+                    DateWrite = item.DateWrite,
+                });
+                if (user != null) item.PathPhoto = user.PathPhoto;
+            }
+
+            return response;
         }
 
         public async Task<IEnumerable<ChatikDto>> AllChatsAsync()
